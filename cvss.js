@@ -68,7 +68,10 @@ var CVSS = function (id, options) {
         S: 'Scope',
         C: 'Confidentiality',
         I: 'Integrity',
-        A: 'Availability'
+        A: 'Availability',
+        E: 'Exploit Code Maturity',
+        RL: 'Remediation Level',
+        RC: 'Report Confidence'   
     };
 
     // Base Metrics
@@ -76,106 +79,168 @@ var CVSS = function (id, options) {
         AV: {
             N: {
                 l: 'Network',
-                d: "<b>Worst:</b> The vulnerable component is bound to the network stack and the set of possible attackers extends beyond the other options listed below, up to and including the entire Internet. Such a vulnerability is often termed “remotely exploitable” and can be thought of as an attack being exploitable at the protocol level one or more network hops away (e.g., across one or more routers)."
+                d: "<b>Worst:</b> A vulnerability exploitable with network access means the vulnerable authorization scope is bound to the network stack and the attacker's path to the vulnerable system is at the network layer. Such a vulnerability is often termed 'remotely exploitable'."
             },
             A: {
                 l: 'Adjacent',
-                d: "<b>Worse:</b> The vulnerable component is bound to the network stack, but the attack is limited at the protocol level to a logically adjacent topology. This can mean an attack must be launched from the same shared physical (e.g., Bluetooth or IEEE 802.11) or logical (e.g., local IP subnet) network, or from within a secure or otherwise limited administrative domain (e.g., MPLS, secure VPN to an administrative network zone). One example of an Adjacent attack would be an ARP (IPv4) or neighbor discovery (IPv6) flood leading to a denial of service on the local LAN segment."
+                d: "<b>Worse:</b> A vulnerability exploitable with adjacent network access means the vulnerable authorization scope is bound to the network stack and the attacker's path to the vulnerable system is at the data link layer. Examples include local IP subnet, Bluetooth, IEEE 802.11, and local Ethernet segment."
             },
             L: {
                 l: 'Local',
-                d: "<b>Bad:</b> The vulnerable component is not bound to the network stack and the attacker’s path is via read/write/execute capabilities. Either: <ul><li>the attacker exploits the vulnerability by accessing the target system locally (e.g., keyboard, console), or remotely (e.g., SSH);</li><li>or the attacker relies on User Interaction by another person to perform actions required to exploit the vulnerability (e.g., using social engineering techniques to trick a legitimate user into opening a malicious document).</li></ul>"
+                d: "<b>Bad:</b> A vulnerability exploitable with local access means the vulnerable authorization scope is not bound to the network stack and the attacker's path to the vulnerable authorization scope is via read / write / execute capabilities. If the attacker has the necessary Privileges Required to interact with the vulnerable authorization scope, they may be logged in locally; otherwise, they may deliver an exploit to a user and rely on User Interaction"
             },
             P: {
                 l: 'Physical',
-                d: "<b>Bad:</b> The attack requires the attacker to physically touch or manipulate the vulnerable component. Physical interaction may be brief (e.g., evil maid attack) or persistent. An example of such an attack is a cold boot attack in which an attacker gains access to disk encryption keys after physically accessing the target system. Other examples include peripheral attacks via FireWire/USB Direct Memory Access (DMA)."
+                d: "<b>Bad:</b> A vulnerability exploitable with physical access requires the ability to physically touch or manipulate a vulnerable authorization scope. Physical interaction may be brief (evil maid attack) or persistent."
             }
         },
         AC: {
             L: {
                 l: 'Low',
-                d: "<b>Worst:</b> Specialized access conditions or extenuating circumstances do not exist. An attacker can expect repeatable success when attacking the vulnerable component."
+                d: "<b>Worst:</b> Specialized access conditions or extenuating circumstances do not exist. An attacker can expect repeatable exploit success against a vulnerable target."
             },
             H: {
                 l: 'High',
-                d: "<b>Bad:</b> A successful attack depends on conditions beyond the attacker's control. That is, a successful attack cannot be accomplished at will, but requires the attacker to invest in some measurable amount of effort in preparation or execution against the vulnerable component before a successful attack can be expected."
+                d: "<b>Bad:</b> A successful attack depends on conditions outside the attacker's control. That is, a successful attack cannot be accomplished at-will, but requires the attacker to invest in some measurable amount of effort in preparation or execution against a specific target before successful attack can be expected. A successful attack depends on attackers overcoming one OR both of the following conditions: the attacker must gather target-specific reconnaissance; or the attacker must prepare the target environment to improve exploit reliability."
             }
         },
         PR: {
             N: {
                 l: 'None',
-                d: "<b>Worst:</b> The attacker is unauthorized prior to attack, and therefore does not require any access to settings or files of the the vulnerable system to carry out an attack."
+                d: "<b>Worst:</b> The attacker is unprivileged or unauthenticated."
             },
             L: {
                 l: 'Low',
-                d: "<b>Worse</b> The attacker requires privileges that provide basic user capabilities that could normally affect only settings and files owned by a user. Alternatively, an attacker with Low privileges has the ability to access only non-sensitive resources."
+                d: "<b>Worse:</b> The attacker is authenticated with privileges that provide basic, low-impact capabilities. With these starting privileges an attacker is able to cause a Partial impact to one or more of: Confidentiality, Integrity, or Availability. Alternatively, an attacker with Low privileges may have the ability to cause an impact only to non-sensitive resources."
             },
             H: {
                 l: 'High',
-                d: "<b>Bad:</b> The attacker requires privileges that provide significant (e.g., administrative) control over the vulnerable component allowing access to component-wide settings and files."
+                d: "<b>Bad:</b> The attacker is authenticated with privileges that provide significant control over component resources. With these starting privileges an attacker can cause a Complete impact to one or more of: Confidentiality, Integrity, or Availability. Alternatively, an attacker with High privileges may have the ability to cause a Partial impact to sensitive resources."
             }
         },
         UI: {
             N: {
                 l: 'None',
-                d: "<b>Worst:</b> The vulnerable system can be exploited without interaction from any user."
+                d: "<b>Worst:</b> The vulnerable system can be exploited without any interaction from any user."
             },
             R: {
                 l: 'Required',
-                d: "<b>Bad:</b> Successful exploitation of this vulnerability requires a user to take some action before the vulnerability can be exploited. For example, a successful exploit may only be possible during the installation of an application by a system administrator."
+                d: "<b>Bad:</b> Successful exploitation of this vulnerability requires a user to take one or more actions that may or may not be expected in a scenario involving no exploitation, or a scenario involving content provided by a seemingly trustworthy source."
             }
         },
 
         S: {
             C: {
                 l: 'Changed',
-                d: "<b>Worst:</b> An exploited vulnerability can affect resources beyond the security scope managed by the security authority of the vulnerable component. In this case, the vulnerable component and the impacted component are different and managed by different security authorities."
+                d: "<b>Worst:</b> The attacker attacks the vulnerable authorization scope and has an impact to its environment. This causes a direct impact to another scope. Score Impact relative to the Changed Scope."
             },
             U: {
                 l: 'Unchanged',
-                d: "<b>Bad:</b> An exploited vulnerability can only affect resources managed by the same security authority. In this case, the vulnerable component and the impacted component are either the same, or both are managed by the same security authority."
+                d: "<b>Bad:</b> The attacker attacks and impacts the environment that authorizes actions taken by the vulnerable authorization scope. Score Impact relative to the original authorization authority."
             }
         },
         C: {
             H: {
                 l: 'High',
-                d: "<b>Worst:</b> There is a total loss of confidentiality, resulting in all resources within the impacted component being divulged to the attacker. Alternatively, access to only some restricted information is obtained, but the disclosed information presents a direct, serious impact. For example, an attacker steals the administrator's password, or private encryption keys of a web server."
+                d: "<b>Worst:</b> There is total information disclosure, resulting in all resources in the affected scope being divulged to the attacker. Alternatively, access to only some restricted information is obtained, but the disclosed information presents a direct, serious impact to the affected scope (e.g. the attacker can read the administrator's password, or private keys in memory are disclosed to the attacker)."
             },
             L: {
                 l: 'Low',
-                d: "<b>Bad:</b> There is some loss of confidentiality. Access to some restricted information is obtained, but the attacker does not have control over what information is obtained, or the amount or kind of loss is limited. The information disclosure does not cause a direct, serious loss to the impacted component."
+                d: "<b>Bad:</b> There is informational disclosure or a bypass of access controls. Access to some restricted information is obtained, but the attacker does not have control over what is obtained, or the scope of the loss is constrained. The information disclosure does not have a direct, serious impact on the affected scope."
             },
             N: {
                 l: 'None',
-                d: "<b>Good:</b> There is no loss of confidentiality within the impacted component."
+                d: "<b>Good:</b> There is no impact to confidentiality within the affected scope."
             }
         },
         I: {
             H: {
                 l: 'High',
-                d: "<b>Worst:</b> There is a total loss of integrity, or a complete loss of protection. For example, the attacker is able to modify any/all files protected by the impacted component. Alternatively, only some files can be modified, but malicious modification would present a direct, serious consequence to the impacted component."
+                d: "<b>Worst:</b> There is a total compromise of system integrity. There is a complete loss of system protection, resulting in the entire system being compromised. The attacker is able to modify any files on the target system."
             },
             L: {
                 l: 'Low',
-                d: "<b>Bad:</b> Modification of data is possible, but the attacker does not have control over the consequence of a modification, or the amount of modification is limited. The data modification does not have a direct, serious impact on the impacted component."
+                d: "<b>Bad:</b> Modification of data is possible, but the attacker does not have control over the end result of a modification, or the scope of modification is constrained. The data modification does not have a direct, serious impact on the affected scope."
             },
             N: {
                 l: 'None',
-                d: "<b>Good:</b> There is no loss of integrity within the impacted component."
+                d: "<b>Good:</b> There is no impact to integrity within the affected scope."
             }
         },
         A: {
             H: {
                 l: 'High',
-                d: "<b>Worst:</b> There is a total loss of availability, resulting in the attacker being able to fully deny access to resources in the impacted component; this loss is either sustained (while the attacker continues to deliver the attack) or persistent (the condition persists even after the attack has completed). Alternatively, the attacker has the ability to deny some availability, but the loss of availability presents a direct, serious consequence to the impacted component (e.g., the attacker cannot disrupt existing connections, but can prevent new connections; the attacker can repeatedly exploit a vulnerability that, in each instance of a successful attack, leaks a only small amount of memory, but after repeated exploitation causes a service to become completely unavailable)."
+                d: "<b>Worst:</b> There is total loss of availability, resulting in the attacker being able to fully deny access to resources in the affected scope; this loss is either sustained (while the attacker continues to deliver the attack) or persistent (the condition persists even after the attack has completed). Alternatively, the attacker has the ability to deny some availability, but the loss of availability presents a direct, serious impact to the affected scope (e.g. the attacker cannot disrupt existing connections, but can prevent new connections; the attacker can repeatedly exploit a vulnerability that, in each instance of a successful attack, leaks a only small amount of memory, but after repeated exploitation causes a service to become completely unavailable)."
             },
             L: {
                 l: 'Low',
-                d: "<b>Bad:</b> Performance is reduced or there are interruptions in resource availability. Even if repeated exploitation of the vulnerability is possible, the attacker does not have the ability to completely deny service to legitimate users. The resources in the impacted component are either partially available all of the time, or fully available only some of the time, but overall there is no direct, serious consequence to the impacted component."
+                d: "<b>Bad:</b> There is reduced performance or interruptions in resource availability. The attacker does not have the ability to completely deny service to legitimate users, even through repeated exploitation of the vulnerability. The resources in the affected scope are either partially available all of the time, or fully available only some of the time, but the overall there is no direct, serious impact to the affected scope."
             },
             N: {
                 l: 'None',
-                d: "<b>Good:</b> There is no impact to availability within the impacted component."
+                d: "<b>Good:</b> There is no impact to availability within the affected scope."
+            }
+        },
+        E: {
+            X: {
+                l: 'Not Defined',
+                d: "<b>Worst:</b> Assigning this value indicates there is insufficient information to choose one of the other values, and has no impact on the overall Temporal Score, i.e., it has the same effect on scoring as assigning High."
+            },
+            H: {
+                l: 'High',
+                d: "<b>Worst:</b> Functional autonomous code exists, or no exploit is required (manual trigger) and details are widely available. Exploit code works in every situation, or is actively being delivered via an autonomous agent (such as a worm or virus). Network-connected systems are likely to encounter scanning or exploitation attempts. Exploit development has reached the level of reliable, widely available, easy-to-use automated tools."
+            },
+            F: {
+                l: 'Functional',
+                d: "<b>Worse:</b> Functional exploit code is available. The code works in most situations where the vulnerability exists."
+            },
+            P: {
+                l: 'Proof-of-Concept',
+                d: "<b>Bad:</b> Proof-of-concept exploit code is available, or an attack demonstration is not practical for most systems. The code or technique is not functional in all situations and may require substantial modification by a skilled attacker."
+            },
+            U: {
+                l: 'Unproven',
+                d: "<b>Good:</b> No exploit code is available, or an exploit is theoretical."
+            }
+        },
+        RL: {
+            X: {
+                l: 'Not Defined',
+                d: "<b>Worst:</b> Assigning this value indicates there is insufficient information to choose one of the other values, and has no impact on the overall Temporal Score, i.e., it has the same effect on scoring as assigning Unavailable."
+            },
+            U: {
+                l: 'Unavailable',
+                d: "<b>Worst:</b> There is either no solution available or it is impossible to apply."
+            },
+            W: {
+                l: 'Workaround',
+                d: "<b>Worse:</b> There is an unofficial, non-vendor solution available. In some cases, users of the affected technology will create a patch of their own or provide steps to work around or otherwise mitigate the vulnerability."
+            },
+            T: {
+                l: 'Temporary Fix',
+                d: "<b>Bad:</b> There is an official but temporary fix available. This includes instances where the vendor issues a temporary hotfix, tool, or workaround."
+            },
+            O: {
+                l: 'Official Fix',
+                d: "<b>Good:</b> A complete vendor solution is available. Either the vendor has issued an official patch, or an upgrade is available."
+            }
+        },
+        RC: {
+            X: {
+                l: 'Not Defined',
+                d: "<b>Worst:</b> Assigning this value indicates there is insufficient information to choose one of the other values, and has no impact on the overall Temporal Score, i.e., it has the same effect on scoring as assigning Confirmed."
+            },
+            C: {
+                l: 'Confirmed',
+                d: "<b>Worst:</b> Detailed reports exist, or functional reproduction is possible (functional exploits may provide this). Source code is available to independently verify the assertions of the research, or the author or vendor of the affected code has confirmed the presence of the vulnerability."
+            },
+            R: {
+                l: 'Reasonable',
+                d: "<b>Bad:</b> Significant details are published, but researchers either do not have full confidence in the root cause, or do not have access to source code to fully confirm all of the interactions that may lead to the result. Reasonable confidence exists, however, that the bug is reproducible and at least one impact is able to be verified (proof-of-concept exploits may provide this). An example is a detailed write-up of research into a vulnerability with an explanation (possibly obfuscated or “left as an exercise to the reader”) that gives assurances on how to reproduce the results."
+            },
+            U: {
+                l: 'Unknown',
+                d: "<b>Bad:</b> There are reports of impacts that indicate a vulnerability is present. The reports indicate that the cause of the vulnerability is unknown, or reports may differ on the cause or impacts of the vulnerability. Reporters are uncertain of the true nature of the vulnerability, and there is little confidence in the validity of the reports or whether a static Base Score can be applied given the differences described. An example is a bug report which notes that an intermittent but non-reproducible crash occurs, with evidence of memory corruption suggesting that denial of service, or possible more serious impacts, may result."
             }
         }
     };
@@ -189,15 +254,12 @@ var CVSS = function (id, options) {
         S: 'CU',
         C: 'HLN',
         I: 'HLN',
-        A: 'HLN'
+        A: 'HLN',
+        E: 'XHFPU',
+        RL: 'XUWTO',
+        RC: 'XCRU',
     };
-    this.bmoReg = {
-        AV: 'NALP',
-        AC: 'LH',
-        C: 'C',
-        I: 'C',
-        A: 'C'
-    };
+
     var s, f, dl, g, dd, l;
     this.el = document.getElementById(id);
     this.el.appendChild(s = e('style'));
@@ -219,7 +281,6 @@ var CVSS = function (id, options) {
             inp.setAttribute('value', s);
             inp.setAttribute('id', id + g + s);
             inp.setAttribute('class', g + s);
-            //inp.setAttribute('ontouchstart', '');
             inp.setAttribute('type', 'radio');
             this.bme[g + s] = inp;
             var me = this;
@@ -235,7 +296,7 @@ var CVSS = function (id, options) {
             dd.appendChild(e('small')).innerHTML = this.bm[g][s].d;
         }
     }
-    //f.appendChild(e('hr'));
+    f.appendChild(e('hr'));
     f.appendChild(dl = e('dl'));
     dl.innerHTML = '<dt>Severity&sdot;Score&sdot;Vector</dt>';
     dd = e('dd');
@@ -249,7 +310,7 @@ var CVSS = function (id, options) {
     l.appendChild(document.createTextNode(' '));
     l.appendChild(this.vector = e('a'));
     this.vector.className = 'vector';
-    this.vector.innerHTML = 'CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_';
+    this.vector.innerHTML = 'CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_/E:_/RL:_/RC:_';
     
     if (options.onsubmit) {
         f.appendChild(e('hr'));
@@ -296,15 +357,6 @@ CVSS.prototype.severityRating = function (score) {
     };
 };
 
-CVSS.prototype.valueofradio = function(e) {
-    for(var i = 0; i < e.length; i++) {
-        if (e[i].checked) {
-            return e[i].value;
-        }
-    }
-    return null;
-};
-
 CVSS.prototype.calculate = function () {
     var cvssVersion = "3.1";
     var exploitabilityCoefficient = 8.22;
@@ -334,8 +386,8 @@ CVSS.prototype.calculate = function () {
                 L: 0.68,
                 H: 0.5
             }
+            // These values are used if Scope is Changed
         },
-        // These values are used if Scope is Changed
         UI: {
             N: 0.85,
             R: 0.62
@@ -358,56 +410,79 @@ CVSS.prototype.calculate = function () {
             N: 0,
             L: 0.22,
             H: 0.56
-        }
+        },
         // C, I and A have the same weights
-
+        E: {
+            X: 1,
+            H: 1,
+            F: 0.97,
+            P: 0.94,
+            U: 0.91
+        },
+        RL: {
+            X: 1,
+            U: 1,
+            W: 0.97,
+            T: 0.96,
+            O: 0.95
+        },
+        RC: {
+            X: 1,
+            C: 1,
+            R: 0.96,
+            U: 0.92
+        }
     };
 
     var p;
     var val = {}, metricWeight = {};
     try {
         for (p in this.bg) {
-            val[p] = this.valueofradio(this.calc.elements[p]);
-            if (typeof val[p] === "undefined" || val[p] === null) {
+            val[p] = this.calc.elements[p].value;
+            if (typeof val[p] === "undefined" || val[p] == '') {
                 return "?";
-            }
+            };
             metricWeight[p] = Weight[p][val[p]];
         }
     } catch (err) {
         return err; // TODO: need to catch and return sensible error value & do a better job of specifying *which* parm is at fault.
     }
-    metricWeight.PR = Weight.PR[val.S][val.PR];
+    metricWeight['PR'] = Weight['PR'][val['S']][val['PR']];
+
     //
     // CALCULATE THE CVSS BASE SCORE
     //
-    var roundUp1 = function Roundup(input) {
-        var int_input = Math.round(input * 100000);
-        if (int_input % 10000 === 0) {
-            return int_input / 100000
-        } else {
-            return (Math.floor(int_input / 10000) + 1) / 10
-        }
-    };
     try {
-    var baseScore, impactSubScore, impact, exploitability;
-    var impactSubScoreMultiplier = (1 - ((1 - metricWeight.C) * (1 - metricWeight.I) * (1 - metricWeight.A)));
-    if (val.S === 'U') {
-        impactSubScore = metricWeight.S * impactSubScoreMultiplier;
+    var baseScore;
+    var temporalScore;
+    var impactSubScore;
+    var exploitabalitySubScore = exploitabilityCoefficient * metricWeight['AV'] * metricWeight['AC'] * metricWeight['PR'] * metricWeight['UI'];
+    var impactSubScoreMultiplier = (1 - ((1 - metricWeight['C']) * (1 - metricWeight['I']) * (1 - metricWeight['A'])));
+    if (val['S'] === 'U') {
+        impactSubScore = metricWeight['S'] * impactSubScoreMultiplier;
     } else {
-        impactSubScore = metricWeight.S * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
+        impactSubScore = metricWeight['S'] * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
     }
-    var exploitabalitySubScore = exploitabilityCoefficient * metricWeight.AV * metricWeight.AC * metricWeight.PR * metricWeight.UI;
+
+
     if (impactSubScore <= 0) {
         baseScore = 0;
     } else {
-        if (val.S === 'U') {
-            baseScore = roundUp1(Math.min((exploitabalitySubScore + impactSubScore), 10));
+        if (val['S'] === 'U') {
+            baseScore = Math.min((exploitabalitySubScore + impactSubScore), 10);
         } else {
-            baseScore = roundUp1(Math.min((exploitabalitySubScore + impactSubScore) * scopeCoefficient, 10));
+            baseScore = Math.min((exploitabalitySubScore + impactSubScore) * scopeCoefficient, 10);
         }
     }
 
-    return baseScore.toFixed(1);
+    baseScore = Math.ceil(baseScore * 10) / 10;
+
+    //
+    // CALCULATE THE CVSS TEMPORAL SCORE
+    //
+    temporalScore = Math.ceil(baseScore * metricWeight['E'] * metricWeight['RL'] * metricWeight['RC'] * 10) / 10
+
+    return temporalScore;
     } catch (err) {
         return err;
     }
@@ -417,13 +492,13 @@ CVSS.prototype.get = function() {
     return {
         score: this.score.innerHTML,
         vector: this.vector.innerHTML
-    };
+    }
 };
 
 CVSS.prototype.setMetric = function(a) {
     var vectorString = this.vector.innerHTML;
-    if (/AV:.\/AC:.\/PR:.\/UI:.\/S:.\/C:.\/I:.\/A:./.test(vectorString)) {} else {
-        vectorString = 'AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_';
+    if (/AV:.\/AC:.\/PR:.\/UI:.\/S:.\/C:.\/I:.\/A:.\/E:.\/RL:.\/RC:./.test(vectorString)) {} else {
+        vectorString = 'AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_/E:_/RL:_/RC:_';
     }
     //e("E" + a.id).checked = true;
     var newVec = vectorString.replace(new RegExp('\\b' + a.name + ':.'), a.name + ':' + a.value);
@@ -432,14 +507,13 @@ CVSS.prototype.setMetric = function(a) {
 
 CVSS.prototype.set = function(vec) {
     var newVec = 'CVSS:3.1/';
-    var sep = '';
-    for (var m in this.bm) {
-        var match = (new RegExp('\\b(' + m + ':[' + this.bmgReg[m] + '])')).exec(vec);
-        if (match !== null) {
-            var check = match[0].replace(':', '');
+    sep = '';
+    for (m in this.bm) {
+        if ((match = (new RegExp('\\b(' + m + ':[' + this.bmgReg[m] + '])')).exec(vec)) != null) {
+            check = match[0].replace(':', '')
             this.bme[check].checked = true;
             newVec = newVec + sep + match[0];
-        } else if ((m in {C:'', I:'', A:''}) && (match = (new RegExp('\\b(' + m + ':C)')).exec(vec)) !== null) {
+        } else if ((m in {C:'', I:'', A:''}) && (match = (new RegExp('\\b(' + m + ':C)')).exec(vec)) != null) {
             // compatibility with v2 only for CIA:C
             this.bme[m + 'H'].checked = true;
             newVec = newVec + sep + m + ':H';
@@ -462,7 +536,7 @@ CVSS.prototype.update = function(newVec) {
     this.severity.className = rating.name + ' severity';
     this.severity.innerHTML = rating.name + '<sub>' + rating.bottom + ' - ' + rating.top + '</sub>';
     this.severity.title = rating.bottom + ' - ' + rating.top;
-    if (this.options !== undefined && this.options.onchange !== undefined) {
+    if (this.options != undefined && this.options.onchange != undefined) {
         this.options.onchange();
     }
 };
